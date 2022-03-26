@@ -1,8 +1,14 @@
+import { Link } from "react-router-dom";
+
 export default function Home() {
   return (
     <>
-      <button>Create Team</button>
-      <button>Join Team</button>
+      <Link to="/create">
+        <button>Create Team</button>
+      </Link>
+      <Link to="/teams">
+        <button>Join Team</button>
+      </Link>
     </>
   );
 }
