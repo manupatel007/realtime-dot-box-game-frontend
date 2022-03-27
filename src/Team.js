@@ -16,7 +16,7 @@ export default function Teams() {
 
   function connect() {
     ws.current = new WebSocket(
-      "wss://fastapi-websockets.vishwas007.repl.co/getteams"
+      "ws://dot-box.azurewebsites.net/getteams"
     );
     ws.current.onopen = function () {
       // subscribe to some channels
