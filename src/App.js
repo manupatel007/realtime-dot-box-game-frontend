@@ -128,7 +128,7 @@ class App extends React.Component {
   };
 
   handleChaal = (event) => {
-    if (this.state.color === this.state.turn) {
+    if (this.state.color === this.state.turn && !this.state.blocked) {
       // only execute if it's your turn
       var currentCoord = event.target.dataset.coord;
       console.log(currentCoord);
@@ -442,7 +442,7 @@ class App extends React.Component {
   };
 
   tint = (event) => {
-    if (this.state.color === this.state.turn) {
+    if (this.state.color === this.state.turn && !this.state.blocked) {
       var currentCoord = event.target.dataset.coord;
       if (this.state.lineCoordinates[currentCoord] === 0) {
         if (this.state.turn === "red") {
@@ -455,7 +455,7 @@ class App extends React.Component {
   };
 
   untint = (event) => {
-    if (this.state.color === this.state.turn) {
+    if (this.state.color === this.state.turn && !this.state.blocked) {
       var currentCoord = event.target.dataset.coord;
       if (this.state.lineCoordinates[currentCoord] === 0) {
         event.target.style.backgroundColor = "rgb(255,255,255)";
@@ -574,7 +574,7 @@ class App extends React.Component {
           {this.state.blocked === true ? (
             <p> Waiting for others to join </p>
           ) : (
-            <p>Your team member connected, start playing</p>
+            <p>Your team member is connected, start playing</p>
           )}
           {this.state.color === this.state.turn ? (
             <p>Its your turn</p>
