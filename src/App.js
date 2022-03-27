@@ -54,7 +54,7 @@ class App extends React.Component {
 
   connect = () => {
     var ws = new WebSocket(
-      "wss://fastapi-websockets.vishwas007.repl.co/ws/" + Date.now()
+      "ws://dot-box.azurewebsites.net/ws/" + Date.now()
     );
     let that = this; // cache the this
     var connectInterval;
