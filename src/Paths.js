@@ -2,6 +2,7 @@ import React from "react";
 import { Route, Routes } from "react-router-dom";
 import App from "./App";
 import CreateTeam from "./CreateTeam";
+import Temp from "./Game";
 import Home from "./Home";
 import JoinTeam from "./JoinTeam";
 import Teams from "./Team";
@@ -16,6 +17,7 @@ export default function Paths() {
       <Route exact path="/create" element={<CreateTeam />} />
       <Route exact path="/join" element={<JoinTeam />} />
       <Route exact path="/wait" element={<Waiting />} />
+      <Route exact path="/temp" element={<Temp />} />
     </Routes>
   );
 }

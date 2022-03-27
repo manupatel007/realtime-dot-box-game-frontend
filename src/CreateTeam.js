@@ -34,7 +34,9 @@ export default function CreateTeam() {
 
   const nextPage = (tname, uname, uid) => {
     console.log(tname, uname, uid);
-    navigate("/wait", { state: { uid: uid, uname: uname, tname: tname } });
+    navigate("/temp", {
+      state: { uid: uid, uname: uname, tname: tname, ucolor: "red" }
+    });
   };
 
   return (

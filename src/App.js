@@ -4,49 +4,144 @@ import React from "react";
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.state = this.initialBoard(5);
+    this.state = this.initialBoard(5, props.team, props.name, props.color);
   }
 
-  ws = new WebSocket(
-    "wss://fastapi-websockets.vishwas007.repl.co/ws/" + Date.now()
-  );
+  // ws = new WebSocket(
+  //   "wss://fastapi-websockets.vishwas007.repl.co/ws/" + Date.now()
+  // );
+
+  timeout = 250;
 
   componentDidMount() {
-    this.ws.onopen = () => {
-      // on connecting, do nothing but log it to the console
-      console.log("connectedd");
+    this.connect();
+    // // console.log(this.props);
+    // // console.log(this.state.color, this.state.turn);
+    // this.ws.onopen = () => {
+    //   // on connecting, do nothing but log it to the console
+    //   console.log("connectedd");
+    //   if (this.state.color === "blue") {
+    //     this.ws.send(
+    //       JSON.stringify({
+    //         type: "welcome",
+    //         name: this.state.name
+    //       })
+    //     );
+    //   }
+    // };
+
+    // this.ws.onmessage = (evt) => {
+    //   // listen to data sent from the websocket server
+    //   const message = JSON.parse(evt.data);
+    //   // this.setState({ dataFromServer: message });
+    //   console.log(message);
+    //   if (message.type === "chaal") {
+    //     this.fillLine2(message.coordinates);
+    //   } else if (message.type === "welcome") {
+    //     this.setState((prevState) => ({
+    //       blocked: false
+    //     }));
+    //   } else {
+    //     this.newChange(message.word);
+    //   }
+    // };
+
+    // this.ws.onclose = () => {
+    //   console.log("disconnected, retrying");
+    //   // automatically try to reconnect on connection loss
+    // };
+  }
+
+  connect = () => {
+    var ws = new WebSocket(
+      "wss://fastapi-websockets.vishwas007.repl.co/ws/" + Date.now()
+    );
+    let that = this; // cache the this
+    var connectInterval;
+
+    // websocket onopen event listener
+    ws.onopen = () => {
+      console.log("connected websocket main component");
+
+      this.setState({ ws: ws });
+
+      that.timeout = 250; // reset timer to 250 on open of websocket connection
+      clearTimeout(connectInterval); // clear Interval on on open of websocket connection
+      if (this.state.color === "blue") {
+        ws.send(
+          JSON.stringify({
+            type: "welcome",
+            name: this.state.name
+          })
+        );
+      }
     };
 
-    this.ws.onmessage = (evt) => {
+    ws.onmessage = (evt) => {
       // listen to data sent from the websocket server
       const message = JSON.parse(evt.data);
       // this.setState({ dataFromServer: message });
       console.log(message);
       if (message.type === "chaal") {
         this.fillLine2(message.coordinates);
+      } else if (message.type === "welcome") {
+        this.setState((prevState) => ({
+          blocked: false
+        }));
       } else {
         this.newChange(message.word);
       }
     };
 
-    this.ws.onclose = () => {
-      console.log("disconnected");
-      // automatically try to reconnect on connection loss
-    };
-  }
+    // websocket onclose event listener
+    ws.onclose = (e) => {
+      console.log(
+        `Socket is closed. Reconnect will be attempted in ${Math.min(
+          10000 / 1000,
+          (that.timeout + that.timeout) / 1000
+        )} second.`,
+        e.reason
+      );
 
-  handleChaal = (event) => {
-    var currentCoord = event.target.dataset.coord;
-    console.log(currentCoord);
-    this.ws.send(
-      JSON.stringify({
-        type: "chaal",
-        coordinates: currentCoord
-      })
-    );
+      that.timeout = that.timeout + that.timeout; //increment retry interval
+      connectInterval = setTimeout(this.check, Math.min(10000, that.timeout)); //call check function after timeout
+    };
+
+    // websocket onerror event listener
+    ws.onerror = (err) => {
+      console.error(
+        "Socket encountered error: ",
+        err.message,
+        "Closing socket"
+      );
+
+      ws.close();
+    };
   };
 
-  initialBoard = (size) => {
+  /**
+   * utilited by the @function connect to check if the connection is close, if so attempts to reconnect
+   */
+  check = () => {
+    const ws = this.state.ws;
+    if (!ws || ws.readyState == WebSocket.CLOSED) this.connect(); //check if websocket instance is closed, if so call `connect` function.
+  };
+
+  handleChaal = (event) => {
+    if (this.state.color === this.state.turn) {
+      // only execute if it's your turn
+      var currentCoord = event.target.dataset.coord;
+      console.log(currentCoord);
+      this.state.ws.send(
+        JSON.stringify({
+          type: "chaal",
+          coordinates: currentCoord
+        })
+      );
+    }
+  };
+
+  initialBoard = (size, team, name, color) => {
     let state = {
       boardSize: size,
       numRed: 0,
@@ -54,7 +149,12 @@ class App extends React.Component {
       turn: "red",
       winMessage: "",
       lineCoordinates: {},
-      boxColors: {}
+      boxColors: {},
+      team: team,
+      name: name,
+      color: color,
+      blocked: true,
+      ws: null
     };
     for (let i = 0; i < 2; i++) {
       for (let j = 0; j < state.boardSize + 1; j++) {
@@ -316,20 +416,20 @@ class App extends React.Component {
     return winMessage;
   };
 
-  changeBoardSize = (event) => {
-    if (window.confirm("Are you sure you would like to start a new game?")) {
-      console.log(event);
-      var newState;
-      if (event.target.id === "small") {
-        newState = this.initialBoard(5);
-      } else if (event.target.id === "medium") {
-        newState = this.initialBoard(8);
-      } else if (event.target.id === "large") {
-        newState = this.initialBoard(11);
-      }
-      this.setState((prevState) => newState);
-    }
-  };
+  // changeBoardSize = (event) => {
+  //   if (window.confirm("Are you sure you would like to start a new game?")) {
+  //     console.log(event);
+  //     var newState;
+  //     if (event.target.id === "small") {
+  //       newState = this.initialBoard(5);
+  //     } else if (event.target.id === "medium") {
+  //       newState = this.initialBoard(8);
+  //     } else if (event.target.id === "large") {
+  //       newState = this.initialBoard(11);
+  //     }
+  //     this.setState((prevState) => newState);
+  //   }
+  // };
 
   selectColor = (int) => {
     if (int === 0) {
@@ -342,27 +442,36 @@ class App extends React.Component {
   };
 
   tint = (event) => {
-    var currentCoord = event.target.dataset.coord;
-    if (this.state.lineCoordinates[currentCoord] === 0) {
-      if (this.state.turn === "red") {
-        event.target.style.backgroundColor = "rgba(255,0,0,0.5)";
-      } else {
-        event.target.style.backgroundColor = "rgba(0,0,255,0.5)";
+    if (this.state.color === this.state.turn) {
+      var currentCoord = event.target.dataset.coord;
+      if (this.state.lineCoordinates[currentCoord] === 0) {
+        if (this.state.turn === "red") {
+          event.target.style.backgroundColor = "rgba(255,0,0,0.5)";
+        } else {
+          event.target.style.backgroundColor = "rgba(0,0,255,0.5)";
+        }
       }
     }
   };
 
   untint = (event) => {
-    var currentCoord = event.target.dataset.coord;
-    if (this.state.lineCoordinates[currentCoord] === 0) {
-      event.target.style.backgroundColor = "rgb(255,255,255)";
+    if (this.state.color === this.state.turn) {
+      var currentCoord = event.target.dataset.coord;
+      if (this.state.lineCoordinates[currentCoord] === 0) {
+        event.target.style.backgroundColor = "rgb(255,255,255)";
+      }
     }
   };
 
   newChange = (event) => {
     var newState;
     if (event === "small") {
-      newState = this.initialBoard(3);
+      newState = this.initialBoard(
+        3,
+        this.state.team,
+        this.state.name,
+        this.state.color
+      );
     }
     this.setState((prevState) => newState);
   };
@@ -460,6 +569,18 @@ class App extends React.Component {
       <div id="game">
         <div id="header">
           <h1 id="welcome">Dots &amp; Boxes </h1>
+          <p>Team:{this.state.team}</p>
+          <p>Hi! {this.state.name}</p>
+          {this.state.blocked === true ? (
+            <p> Waiting for others to join </p>
+          ) : (
+            <p>Your team member connected, start playing</p>
+          )}
+          {this.state.color === this.state.turn ? (
+            <p>Its your turn</p>
+          ) : (
+            <p>Its your opponent's turn</p>
+          )}
           <p id="score">
             {" "}
             Red:{this.state.numRed} Blue:{this.state.numBlue}{" "}
@@ -468,7 +589,7 @@ class App extends React.Component {
           <button
             id="small"
             onClick={(e) => {
-              this.ws.send(
+              this.state.ws.send(
                 JSON.stringify({
                   type: "size",
                   word: "small"
