@@ -7,10 +7,6 @@ class App extends React.Component {
     this.state = this.initialBoard(5, props.team, props.name, props.color);
   }
 
-  // ws = new WebSocket(
-  //   "wss://fastapi-websockets.vishwas007.repl.co/ws/" + Date.now()
-  // );
-
   timeout = 250;
 
   componentDidMount() {
