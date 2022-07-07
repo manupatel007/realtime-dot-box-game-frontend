@@ -9,7 +9,7 @@ export default function CreateTeam() {
       tname = e.target.team.value,
       uname = e.target.username.value;
     console.log(tname);
-    fetch("https://dot-box.azurewebsites.net/addteam", {
+    fetch("http://127.0.0.1:8000/addteam", {
       method: "POST",
       body: JSON.stringify({
         name: tname,

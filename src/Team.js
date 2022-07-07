@@ -16,7 +16,7 @@ export default function Teams() {
 
   function connect() {
     ws.current = new WebSocket(
-      "wss://dot-box.azurewebsites.net/getteams"
+      "ws://127.0.0.1:8000/getteams"
     );
     ws.current.onopen = function () {
       // subscribe to some channels
